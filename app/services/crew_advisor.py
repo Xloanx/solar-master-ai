@@ -70,6 +70,16 @@ Return only the agent names as a JSON list. Example: ["Sizing Expert", "Cost Opt
     except json.JSONDecodeError:
         # fallback or default if routing fails
         return ["Sizing Expert"]
+    
+
+def is_solar_related(query: str) -> bool:
+    """Use LLM to determine if the query is solar-related."""
+    check_prompt = [
+        SystemMessage(content="You're a domain classifier. Determine if the following query is related to solar energy systems."),
+        HumanMessage(content=f"Query: {query}\n\nAnswer only with true or false.")
+    ]
+    response = llm(check_prompt)
+    return "true" in response.content.lower()
 
 
 # Main function
