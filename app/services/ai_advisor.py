@@ -3,10 +3,8 @@ import os
 
 from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-# from langchain.vectorstores import Pinecone as LangchainPinecone
 from langchain_pinecone import Pinecone as LangchainPinecone
-from pinecone import Pinecone  # This is the new v3 class
-# from langchain.embeddings.openai import OpenAIEmbeddings
+from pinecone import Pinecone  
 
 from app.services.crew_advisor import run_crew_with_context, is_solar_related
 
@@ -44,22 +42,6 @@ def get_vectorstore():
 
     return LangchainPinecone(index, embeddings, "text")
 
-# def get_rag_context(query: str) -> str:
-#     db = get_vectorstore()
-#     retriever = db.as_retriever(search_kwargs={"k": 4})
-
-#     chain = RetrievalQA.from_chain_type(
-#         llm=ChatOpenAI(model="gpt-4", temperature=0.2, openai_api_key=openai_api_key),
-#         chain_type="stuff",
-#         retriever=retriever,
-#         return_source_documents=True
-#     )
-
-#     result = chain({"query": query})
-#     answer = result["result"]
-#     sources = sorted(set(doc.metadata.get("source", "Unknown") for doc in result.get("source_documents", [])))
-
-#     return f"{answer}\n\nSources:\n" + "\n".join(sources)
 
 
 def get_rag_context(query: str) -> str:
@@ -90,7 +72,8 @@ def query_advisor(question: str, user_id=None) -> str:
 
     rag_context = get_rag_context(question)
     if not rag_context.strip():
-        return "I'm sorry, I couldn't find relevant information. Could you rephrase or ask a more specific solar-related question?"
+        fallback_context = "You are a solar energy expert. Answer the user's question to the best of your knowledge."
+        return run_crew_with_context(user_query=question, context=fallback_context)
 
     final_response = run_crew_with_context(user_query=question, context=rag_context)
     return final_response
