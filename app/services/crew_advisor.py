@@ -125,6 +125,6 @@ def run_crew_with_context(user_query: str, context: str, user_id: str = "default
     result = crew.kickoff()
 
     # Store final result in memory
-    memory.chat_memory.add_ai_message(result)
+    memory.chat_memory.add_ai_message(str(result.raw if hasattr(result, "raw") else result))
 
     return result
